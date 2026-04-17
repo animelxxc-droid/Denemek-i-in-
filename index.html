@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>MangaLX: Ally vs Paris</title>
+    <style>
+        body { margin: 0; background: #0a0a0a; color: white; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; overflow: hidden; }
+        #game-stage { position: relative; width: 900px; height: 500px; background: linear-gradient(to bottom, #111, #001); border: 5px solid #333; border-radius: 15px; box-shadow: 0 0 50px rgba(147, 51, 234, 0.2); }
+        .ui { position: absolute; top: 25px; width: 100%; display: flex; justify-content: space-around; z-index: 10; font-weight: bold; }
+        .health-bar { width: 350px; height: 30px; background: #222; border: 3px solid #444; overflow: hidden; position: relative; border-radius: 5px; }
+        .health-fill { height: 100%; transition: 0.2s; width: 100%; }
+        #ally-health { background: #9333ea; box-shadow: 0 0 15px #9333ea; }
+        #paris-health { background: #00f2ff; box-shadow: 0 0 15px #00f2ff; }
+        .fighter { position: absolute; bottom: 30px; width: 100px; height: 180px; transition: 0.1s; background-size: contain; background-repeat: no-repeat; background-position: bottom; }
+        /* Ally Karakteri (Sen - image_1.png) */
+        #ally { left: 100px; background-image: url('image_1.png'); box-shadow: 0 0 25px #9333ea; }
+        /* Paris Karakteri (Rakip - image_2.png) */
+        #paris { right: 100px; background-image: url('image_2.png'); box-shadow: 0 0 25px #00f2ff; }
+        .victory-pose { transform: rotate(0deg) !important; bottom: 30px !important; } /* Kazananın ayakta durması */
+        .defeat-pose { transform: rotate(90deg) translate(50px, -50px) !important; bottom: 0 !important; } /* Kaybedenin yere düşmesi */
+        #info { margin-top: 25px; color: #aaa; text-align: center; font-size: 18px; }
+        #msg { position: absolute; top: 100px; left: 50%; transform: translateX(-50%); font-size: 40px; font-weight: bold; text-align: center; display: none; }
+    </style>
+</head>
+<body>
+
+    <div id="game-stage">
+        <div class="ui">
+            <div>ALLY (SEN)<div class="health-bar"><div id="ally-health" class="health-fill"></div></div></div>
+            <div style="font-size: 30px; color: #ff0055;">VS</div>
+            <div>PARIS (RAKİP)<div class="health-bar"><div id="paris-health" class="health-fill"></div></div></div>
+        </div>
+        <div id="ally" class="fighter"></div>
+        <div id="paris" class="fighter"></div>
+        <div id="msg"></div>
+    </div>
+
+    <div id="info">
+        <b>KONTROLLER:</b> A-D (Hata) | W (Zıpla) | <b>S (SALDIR!)</b> <br>
+        <span style="color: #9333ea; font-size: 22px;">MangaLX Kapışması Başlasın!</span>
+    </div>
+
+    <script>
+        const ally = document.getElementById('ally');
+        const paris = document.getElementById('paris');
+        const hA = document.getElementById('ally-health');
+        const hP = document.getElementById('paris-health');
+        const msg = document.getElementById('msg');
+
+        let aPos = 100, aY = 0, aHp = 100;
+        let pPos = 700, pHp = 100;
+        let isJumping = false;
+        let gameOver = false;
+
+        document.addEventListener('keydown', (e) => {
+            if (gameOver) return;
+
+            // Ally Hareket (A-D)
+            if (e.key === 'd' && aPos < pPos - 110) aPos += 20;
+            if (e.key === 'a' && aPos > 0) aPos -= 20;
+            
+            // Ally Zıplama (W)
+            if (e.key === 'w' && !isJumping) {
+                isJumping = true; aY = 120;
+                setTimeout(() => { aY = 0; isJumping = false; updatePos(); }, 350);
+            }
+
+            // Ally Saldırı (S - Çanta Darbesi!)
+            if (e.key === 's') {
+                ally.style.boxShadow = "0 0 60px white";
+                if (Math.abs(aPos - pPos) < 130) {
+                    pHp -= 15;
+                    hP.style.width = pHp + "%";
+                    pPos += 40; // Rakibi geri itme
+                }
+                setTimeout(() => { ally.style.boxShadow = "0 0 25px #9333ea"; }, 150);
+            }
+
+            updatePos();
+            checkVictory();
+        });
+
+        function updatePos() {
+            ally.style.left = aPos + "px";
+            ally.style.bottom = (30 + aY) + "px";
+            paris.style.right = (900 - pPos - 100) + "px";
+        }
+
+        // Basit Yapay Zeka (Paris sana yaklaşır)
+        setInterval(() => {
+            if (pHp > 0 && aHp > 0 && !gameOver) {
+                if (pPos > aPos + 120) pPos -= 4;
+                else if (pPos < aPos + 120) pPos += 4;
+                updatePos();
+            }
+        }, 60);
+
+        function checkVictory() {
+            if (pHp <= 0 && !gameOver) {
+                gameOver = true;
+                pHp = 0; hP.style.width = "0%";
+                paris.classList.add('defeat-pose'); // Paris yere düşer
+                
+                // Ally'nin kafaya basma pozu
+                setTimeout(() => {
+                    aPos = pPos; // Ally, Paris'in yanına gider
+                    updatePos();
+                    ally.style.transform = "translate(-30px, -20px)"; // Kafaya basma pozu
+                    msg.style.color = "#00ff00";
+                    msg.innerHTML = "ALLY KAZANDI!<br>EZECEĞİM!";
+                    msg.style.display = "block";
+                }, 400);
+            }
+        }
+    </script>
+</body>
+</html>
