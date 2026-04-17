@@ -2,41 +2,63 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MangaLX: Ally vs Paris</title>
     <style>
         body { margin: 0; background: #000; color: white; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; overflow: hidden; }
-        #game-stage { position: relative; width: 380px; height: 500px; background: #050505; border: 2px solid #333; border-radius: 15px; box-shadow: 0 0 30px rgba(147, 51, 234, 0.2); }
+        #game-stage { position: relative; width: 90vw; max-width: 400px; height: 500px; background: #050505; border: 2px solid #333; border-radius: 15px; box-shadow: 0 0 30px rgba(147, 51, 234, 0.2); }
         .ui { position: absolute; top: 15px; width: 100%; display: flex; flex-direction: column; align-items: center; z-index: 10; gap: 10px; }
-        .health-bar { width: 150px; height: 15px; background: #222; border: 1px solid #444; border-radius: 5px; overflow: hidden; }
+        .health-container { display: flex; gap: 20px; font-size: 12px; font-weight: bold; }
+        .health-bar { width: 120px; height: 15px; background: #222; border: 1px solid #444; border-radius: 5px; overflow: hidden; }
         .health-fill { height: 100%; width: 100%; transition: 0.2s; }
-        #ally-health { background: #9333ea; }
-        #paris-health { background: #00f2ff; }
-        .fighter { position: absolute; bottom: 20px; width: 120px; height: 220px; background-size: cover; background-position: center; border-radius: 10px; border: 2px solid rgba(255,255,255,0.1); }
-        /* Karakter Resimleri */
-        #ally { left: 20px; background-image: url('https://raw.githubusercontent.com/animelxxc-droid/MangaLX/main/1000000607.jpg'); box-shadow: 0 0 20px #9333ea; }
-        #paris { right: 20px; background-image: url('https://raw.githubusercontent.com/animelxxc-droid/MangaLX/main/1000000608.jpg'); box-shadow: 0 0 20px #00f2ff; }
-        .defeat { transform: rotate(90deg) !important; bottom: -40px !important; filter: grayscale(1); }
-        #msg { position: absolute; top: 50%; width: 100%; text-align: center; font-size: 30px; font-weight: bold; display: none; text-shadow: 0 0 20px #00ff00; }
+        #ally-health { background: #9333ea; box-shadow: 0 0 10px #9333ea; }
+        #paris-health { background: #00f2ff; box-shadow: 0 0 10px #00f2ff; }
+        
+        .fighter { 
+            position: absolute; 
+            bottom: 20px; 
+            width: 130px; 
+            height: 240px; 
+            background-size: cover; 
+            background-position: center; 
+            border-radius: 10px;
+            transition: transform 0.1s;
+        }
+
+        /* RESİMLER BURADA - SİLİNMEYEN LİNKLER */
+        #ally { 
+            left: 10px; 
+            background-image: url('https://files.catbox.moe/p9o487.jpg'); 
+            box-shadow: 0 0 20px #9333ea; 
+        }
+        #paris { 
+            right: 10px; 
+            background-image: url('https://files.catbox.moe/u8o0y4.jpg'); 
+            box-shadow: 0 0 20px #00f2ff; 
+        }
+
+        .defeat { transform: rotate(90deg) !important; bottom: -50px !important; filter: grayscale(1) opacity(0.7); }
+        #msg { position: absolute; top: 40%; width: 100%; text-align: center; font-size: 35px; font-weight: bold; display: none; z-index: 20; color: #00ff00; text-shadow: 0 0 20px #000; }
     </style>
 </head>
 <body>
 
     <div id="game-stage">
         <div class="ui">
-            <div style="display:flex; gap: 20px;">
+            <div class="health-container">
                 <div>ALLY<div class="health-bar"><div id="ally-health" class="health-fill"></div></div></div>
+                <div style="color: #ff0055; font-size: 18px;">VS</div>
                 <div>PARIS<div class="health-bar"><div id="paris-health" class="health-fill"></div></div></div>
             </div>
-            <div style="color: #ff0055; font-weight: bold;">VS</div>
         </div>
         <div id="ally" class="fighter"></div>
         <div id="paris" class="fighter"></div>
         <div id="msg"></div>
     </div>
 
-    <div style="margin-top: 15px; font-size: 12px; color: #666; text-align: center;">
-        A-D: Hareket | W: Zıpla | S: SALDIR!<br>
-        <span style="color: #9333ea;">MangaLX Özel Kapışma</span>
+    <div style="margin-top: 20px; text-align: center; font-size: 14px; color: #888;">
+        <b>A-D:</b> Yürü | <b>W:</b> Zıpla | <b>S:</b> TOKATLA!<br>
+        <span style="color: #9333ea; font-weight: bold;">MangaLX: İntikam Gecesi</span>
     </div>
 
     <script>
@@ -45,28 +67,33 @@
         const hP = document.getElementById('paris-health');
         const msg = document.getElementById('msg');
 
-        let aPos = 20, aY = 0, pPos = 240, pHp = 100, isJumping = false, gameOver = false;
+        let aPos = 10, aY = 0, pPos = 240, pHp = 100, isJumping = false, gameOver = false;
 
         document.addEventListener('keydown', (e) => {
             if (gameOver) return;
-            if (e.key === 'd' && aPos < pPos - 80) aPos += 15;
-            if (e.key === 'a' && aPos > 0) aPos -= 15;
-            if (e.key === 'w' && !isJumping) {
-                isJumping = true; aY = 80;
+            
+            let key = e.key.toLowerCase();
+            if (key === 'd' && aPos < pPos - 90) aPos += 20;
+            if (key === 'a' && aPos > 0) aPos -= 20;
+            if (key === 'w' && !isJumping) {
+                isJumping = true; aY = 100;
                 setTimeout(() => { aY = 0; isJumping = false; update(); }, 300);
             }
-            if (e.key === 's') {
-                if (Math.abs(aPos - pPos) < 100) {
+            if (key === 's') {
+                ally.style.transform = "scale(1.1) translateX(10px)";
+                if (Math.abs(aPos - pPos) < 120) {
                     pHp -= 20; hP.style.width = pHp + "%";
-                    pPos += 20;
+                    pPos += 30; // Geri savrulma
                 }
+                setTimeout(() => { ally.style.transform = "scale(1)"; }, 100);
             }
             update();
             if (pHp <= 0) {
                 gameOver = true;
                 paris.classList.add('defeat');
-                ally.style.left = (pPos - 30) + "px"; // Üstüne yürüme
-                msg.innerHTML = "ALLY KAZANDI!<br>EZECEĞİM!";
+                aPos = pPos - 40; // Paris'in yanına git
+                update();
+                msg.innerHTML = "ALLY KAZANDI!<br>EZDİM GEÇTİM!";
                 msg.style.display = "block";
             }
         });
